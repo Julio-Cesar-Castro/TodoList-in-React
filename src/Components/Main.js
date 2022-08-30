@@ -4,21 +4,17 @@ import css from "../App.css";
 import trash from "../Images/Trash Icon.png";
 import edit from "../Images/Edit Icon.png";
 import { isContentEditable } from "@testing-library/user-event/dist/utils";
-import { toBeInTheDocument } from "@testing-library/jest-dom/dist/matchers";
+import {
+  toBeChecked,
+  toBeInTheDocument,
+  toHaveDisplayValue,
+} from "@testing-library/jest-dom/dist/matchers";
 
 const Container = styled.div`
   max-width: 1920px;
   width: 100%;
   height: 100vh;
   margin: 0 auto;
-  background-image: linear-gradient(
-    to right bottom,
-    #5a616b,
-    #47484f,
-    #333035,
-    #1e1b1d,
-    #000000
-  );
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -33,8 +29,7 @@ const ContainerTitle = styled.article`
   justify-content: center;
 
   h1 {
-    font-size: 2.5rem;
-    font-style: italic;
+    font-size: 1.5rem;
     color: #fff;
   }
 `;
@@ -45,22 +40,21 @@ const ContainerTask = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
 `;
 
 const Input = styled.input`
   padding: 10px;
   width: 30vw;
-  border-radius: 10px;
+  border-radius: 5px;
   border: none;
   background: none;
   background-color: rgba(255, 255, 255, 0.9);
 `;
 
 const Button = styled.button`
-  padding: 9px;
+  padding: 10px;
   width: 8vw;
-  border-radius: 15px;
+  border-radius: 5px;
   font-size: 14px;
   border: none;
   color: #fff;
@@ -107,6 +101,8 @@ const TaskLi = styled.li`
   height: 100%;
   width: 85%;
   margin-left: 10px;
+  text-decoration: line-through;
+  text-decoration: none;
 `;
 
 const ContainerButtons = styled.div`
@@ -132,10 +128,69 @@ const Checkbox = styled.input`
   cursor: pointer;
 `;
 
+const EditTaskBody = styled.div`
+  position: absolute;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  display: none;
+`;
+
+const EditTaskMain = styled.div`
+  width: 550px;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0);
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+
+  h2 {
+    border: none;
+    width: 80%;
+    font-size: 20px;
+    color: #fff;
+  }
+
+  input {
+    width: 80%;
+    padding: 10px;
+    background: none;
+    border: solid 2px rgb(65, 83, 151);
+    border-radius: 8px;
+    color: #fff;
+  }
+`;
+
+const EditTaskButton = styled.button`
+  width: 80%;
+  background: none;
+  border: none;
+  display: flex;
+  justify-content: flex-end;
+  gap: 20px;
+
+  button {
+    border: none;
+    background: none;
+    color: rgb(65, 83, 151);
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+`;
+
 export default class Main extends Component {
   state = {
     task: "",
     taskList: [],
+    editTask: "",
+    posicao: 0,
   };
 
   handleChange = (e) => {
@@ -152,12 +207,60 @@ export default class Main extends Component {
       }),
       task: "",
     });
+    console.log("Adicionando", this.state.taskList);
   };
 
   removeTask = (id) => {
     this.setState({
       taskList: this.state.taskList.filter((item) => item.id !== id),
     });
+    console.log("Removendo", this.state.taskList);
+  };
+
+  showDisplay = (task, posicao) => {
+    const btn = document.querySelector(".Container-box");
+    if (btn.style.display === "none") {
+      this.setState({
+        editTask: task,
+        posicao: posicao,
+      });
+      btn.style.display = "flex";
+    } else {
+      btn.style.display = "none";
+    }
+  };
+
+  newtextValue = (e) => {
+    this.setState({
+      editTask: e.target.value,
+    });
+    console.log("Mensagem escrita", this.state.editTask);
+  };
+
+  newvalueTest = () => {
+    const array = [...this.state.taskList];
+    array.splice(this.state.posicao, 1, {
+      task: this.state.editTask,
+      id: this.state.taskList[this.state.posicao].id,
+    });
+    this.setState({
+      taskList: array,
+    });
+    this.showDisplay();
+    console.log("Posicao", this.state.posicao);
+    console.log(this.state.taskList);
+    console.log(this.state.editTask);
+  };
+
+  checkInput = () => {
+    const input = document.querySelector(".inputBox");
+    const typing = document.querySelector(".checkMark");
+
+    if (input === toBeChecked || typing.style.textDecoration === "none") {
+      typing.style.textDecoration = "lineThrough";
+    }
+    console.log(input);
+    console.log(typing);
   };
 
   render() {
@@ -180,10 +283,18 @@ export default class Main extends Component {
             {this.state.taskList.map((item, index) => (
               <TaskBody>
                 <TaskUl index={index}>
-                  <Checkbox type="checkbox" />
-                  <TaskLi>{item.task}</TaskLi>
+                  <Checkbox
+                    className="inputBox"
+                    type="checkbox"
+                    onClick={this.checkInput}
+                  />
+                  <TaskLi className="checkMark">{item.task}</TaskLi>
                   <ContainerButtons>
-                    <ButtonsTask>
+                    <ButtonsTask
+                      onClick={() => {
+                        this.showDisplay(item.task, index);
+                      }}
+                    >
                       <Images src={edit} alt="Edit Icon" />
                     </ButtonsTask>
                     <ButtonsTask
@@ -198,6 +309,20 @@ export default class Main extends Component {
               </TaskBody>
             ))}
           </Tasks>
+          <EditTaskBody className="Container-box">
+            <EditTaskMain className="MainBox">
+              <h2>Edit Task</h2>
+              <input
+                onChange={this.newtextValue}
+                value={this.state.editTask}
+                type="text"
+              />
+              <EditTaskButton>
+                <button onClick={this.showDisplay}>CANCELAR</button>
+                <button onClick={this.newvalueTest}>OK</button>
+              </EditTaskButton>
+            </EditTaskMain>
+          </EditTaskBody>
         </Container>
       </>
     );
