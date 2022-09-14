@@ -3,12 +3,6 @@ import styled from "styled-components";
 import css from "../App.css";
 import trash from "../Images/Trash Icon.png";
 import edit from "../Images/Edit Icon.png";
-import { isContentEditable } from "@testing-library/user-event/dist/utils";
-import {
-  toBeChecked,
-  toBeInTheDocument,
-  toHaveDisplayValue,
-} from "@testing-library/jest-dom/dist/matchers";
 
 const Container = styled.div`
   max-width: 1920px;
@@ -44,6 +38,7 @@ const ContainerTask = styled.div`
 
 const Input = styled.input`
   padding: 10px;
+  outline: none;
   width: 30vw;
   border-radius: 5px;
   border: none;
@@ -270,15 +265,19 @@ export default class Main extends Component {
           <ContainerTitle>
             <h1>To Do List</h1>
           </ContainerTitle>
+
           <ContainerTask>
-            <Input
-              type="text"
-              placeholder="Type your task here"
-              value={this.state.task}
-              onChange={this.handleChange}
-            />
-            <Button onClick={this.submitSend}>Submit</Button>
+            <form onSubmit={(e) => e.preventDefault()}>
+              <Input
+                type="text"
+                placeholder="Type your task here"
+                value={this.state.task}
+                onChange={this.handleChange}
+              />
+              <Button onClick={this.submitSend}>Submit</Button>
+            </form>
           </ContainerTask>
+
           <Tasks>
             {this.state.taskList.map((item, index) => (
               <TaskBody>
